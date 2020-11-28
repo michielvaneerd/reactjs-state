@@ -1,25 +1,21 @@
-import logo from './logo.svg';
-import './App.css';
+// https://kentcdodds.com/blog/application-state-management-with-react
+// https://www.digitalocean.com/community/tutorials/how-to-share-state-across-react-components-with-context#step-1-%E2%80%94-building-the-basis-for-your-application
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+import TodoList from './TodoList';
+import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
+import UserList from './UserList';
+
+export default function App() {
+    return (
+        <Router>
+            <Switch>
+                <Route exact path="/">
+                    <UserList />
+                </Route>
+                <Route path="/users/:userid">
+                    <TodoList />
+                </Route>
+            </Switch>
+        </Router>
+    );
 }
-
-export default App;
