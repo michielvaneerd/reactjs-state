@@ -1,5 +1,3 @@
-# This app
+# ReactJS Todo app
 
-- If not logged in, show login page
-- If logged in, show todo's
-- Todo's can be filtered, added, deleted, completed
+ReactJS Todo app that uses `useState` hook for state management.
