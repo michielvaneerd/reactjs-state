@@ -12,6 +12,8 @@ export default function App() {
                 <Route exact path="/">
                     <UserList />
                 </Route>
+                {/* The below route will NOT be unmounted when going to a nested route inside the TodoList component
+                    See for explanation: https://github.com/ReactTraining/react-router/issues/6804 */}
                 <Route path="/users/:userid">
                     <TodoList />
                 </Route>

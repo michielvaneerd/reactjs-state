@@ -5,13 +5,59 @@ import { Route, NavLink, Switch, useParams, useRouteMatch } from 'react-router-d
 import useFetch from './hooks/useFetch';
 import Todo from './Todo';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
+import MyCache from './MyCache';
+
+function reducer(state, action) {
+    switch (action.type) {
+        case "FETCH":
+            MyCache[action.key] = action.payload;
+            return { ...state, todos: action.payload };
+        case "ERROR":
+            return { ...state, error: action.payload };
+        case "TOGGLE_COMPLETED":
+            {
+                const index = state.todos.findIndex((todo) => todo.id === action.payload);
+                const todo = state.todos[index];
+                todo.completed = !todo.completed;
+                return { ...state, todos: Object.assign([], state.todos, { index: todo }) };
+            }
+        case "DELETE":
+            {
+                const index = state.todos.findIndex((todo) => todo.id == action.payload);
+                const newState = { ...state, todos: [...state.todos.slice(0, index), ...state.todos.slice(index + 1)] };
+                MyCache[action.key] = newState.todos;
+                return newState;
+            }
+        case "SAVE":
+            {
+                if (action.payload.id) {
+                    const index = state.todos.findIndex((item) => item.id == action.payload.id);
+                    const oldTodo = state.todos[index];
+                    oldTodo.title = action.payload.title;
+                    return { ...state, todos: Object.assign([], state.todos, { index: oldTodo })};
+                } else {
+                    return {...state, todos: [...state.todos, { id: Date.now(), title: action.payload.title, completed: false }]};
+                }
+            }
+        default:
+            throw Error("Unknown action");
+    }
+}
 
 export default function TodoList(props) {
 
     const [filter, setFilter] = useState("ALL");
     const params = useParams();
-    const [todos, error, setTodos] = useFetch("https://jsonplaceholder.typicode.com/todos?userId=" + params.userid);
+    const cacheKey = "todos_" + params.userid;
+
+    const [state, dispatch] = useFetch("https://jsonplaceholder.typicode.com/todos?userId=" + params.userid, reducer, {
+        todos: null,
+        error: null
+    }, () => MyCache.getByKey(cacheKey), cacheKey);
+
     const match = useRouteMatch();
+
+    const { error, todos } = state;
 
     if (error) {
         return <div className="alert alert-danger mt-5">Error: {error.toString()}</div>
@@ -22,26 +68,26 @@ export default function TodoList(props) {
     }
 
     function toggleCompleted(id) {
-        const index = todos.findIndex((todo) => todo.id === id);
-        const todo = todos[index];
-        todo.completed = !todo.completed;
-        setTodos(Object.assign([], todos, { index: todo }));
+        dispatch({
+            type: "TOGGLE_COMPLETED",
+            payload: id
+        });
     }
 
     function deleteTodo(id) {
-        const index = todos.findIndex((todo) => todo.id === id);
-        setTodos([...todos.slice(0, index), ...todos.slice(index + 1)]);
+        dispatch({
+            type: "DELETE",
+            payload: id,
+            key: cacheKey
+        });
     }
 
     function saveTodo(todo) {
-        if (todo.id) {
-            const index = todos.findIndex((item) => item.id == todo.id);
-            const oldTodo = todos[index];
-            oldTodo.title = todo.title;
-            setTodos(Object.assign([], todos, { index: oldTodo }));
-        } else {
-            setTodos([...todos, { id: Date.now(), title: todo.title, completed: false }]);
-        }
+        dispatch({
+            type: "SAVE",
+            payload: todo,
+            key: cacheKey
+        });
     }
 
     const breadCrumbs = [

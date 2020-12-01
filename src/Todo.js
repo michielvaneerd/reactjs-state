@@ -1,14 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useHistory } from "react-router-dom";
-import useFetch from './hooks/useFetch';
 import BreadCrumbList from './BreadCrumbList';
+import MyCache from './MyCache';
 
 export default function Todo(props) {
 
     const params = useParams();
     const history = useHistory();
-    const [todos] = useFetch("https://jsonplaceholder.typicode.com/todos?userId=" + params.userid);
+
+    //const [todos] = useFetch("https://jsonplaceholder.typicode.com/todos?userId=" + params.userid);
+    const todos = MyCache["todos_" + params.userid];
+    
     const [todo, setTodo] = useState(todos && params.todoid ? (todos.find((item) => item.id == params.todoid)) : {});
+    
     const titleInput = useRef();
 
     useEffect(function() {
