@@ -4,20 +4,29 @@
 import TodoList from './TodoList';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 import UserList from './UserList';
+import { AuthContext, useAuth } from './hooks/useAuth';
+import PrivateRoute from './PrivateRoute';
+import Login from './Login';
 
 export default function App() {
+    const auth = useAuth();
     return (
-        <Router>
-            <Switch>
-                <Route exact path="/">
-                    <UserList />
-                </Route>
-                {/* The below route will NOT be unmounted when going to a nested route inside the TodoList component
+        <AuthContext.Provider value={auth}>
+            <Router>
+                <Switch>
+                    <Route exact path="/">
+                        <Login />
+                    </Route>
+                    <PrivateRoute exact path="/users">
+                        <UserList />
+                    </PrivateRoute>
+                    {/* The below route will NOT be unmounted when going to a nested route inside the TodoList component
                     See for explanation: https://github.com/ReactTraining/react-router/issues/6804 */}
-                <Route path="/users/:userid">
-                    <TodoList />
-                </Route>
-            </Switch>
-        </Router>
+                    <PrivateRoute path="/users/:userid">
+                        <TodoList />
+                    </PrivateRoute>
+                </Switch>
+            </Router>
+        </AuthContext.Provider>
     );
 }
